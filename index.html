@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Glory Tavern — Clash Of Hodlers</title>
+  <link rel="icon" href="logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Cinzel:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#fdf9f4; --panel:#fffaf3; --ink:#3a2a1a; --muted:#8b7760; --line:#e0d6c9;
+      --accent:#d98c3b; --accent-2:#9c5d2e; --highlight:#f2c879; --soft:#fff6ea;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0; background:var(--bg); color:var(--ink); font:16px/1.6 Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    a{color:var(--accent); text-decoration:none}
+    a:hover{text-decoration:underline}
+    .wrap{display:flex; flex-direction:column; min-height:100dvh}
+
+    /* NAV */
+    .nav{position:sticky; top:0; z-index:10; background:var(--panel); border-bottom:2px solid var(--line); box-shadow:0 3px 8px rgba(0,0,0,.05)}
+    .nav .row{max-width:1100px; margin:0 auto; padding:12px 20px; display:flex; align-items:center; gap:16px}
+    .brand{display:flex; align-items:center; gap:14px; font-weight:800; letter-spacing:.2px; font-family:Cinzel,serif; font-size:20px}
+    .brand img{height:40px}
+    .navlinks{margin-left:auto; display:flex; gap:18px}
+    .btn{display:inline-grid; place-items:center; padding:10px 16px; border-radius:10px; border:2px solid var(--accent); background:var(--accent); color:#fff; font-weight:700; transition:.2s}
+    .btn:hover{background:var(--highlight); color:#3a2a1a; border-color:var(--highlight)}
+    .btn.outline{background:var(--soft); color:var(--accent-2)}
+
+    /* Sections */
+    section{border-bottom:2px solid var(--line)}
+    .row{max-width:1100px; margin:0 auto; padding:56px 20px}
+    h1,h2,h3{font-family:Cinzel,serif}
+    h1{font-size:42px; line-height:1.1; margin:8px 0 14px; color:var(--accent-2)}
+    h2{font-size:30px; margin:0 0 14px; color:var(--accent-2)}
+    h3{font-size:20px; margin:0 0 10px; color:var(--accent)}
+    .muted{color:var(--muted)}
+    .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:32px}
+    .card{background:var(--panel); border:2px solid var(--line); border-radius:16px; padding:22px; box-shadow:0 6px 20px rgba(0,0,0,.08)}
+    .list{display:grid; gap:10px}
+    .badge{display:inline-block; padding:6px 10px; border-radius:999px; border:1px solid var(--line); background:var(--soft); font-weight:600; font-size:13px; color:var(--accent-2)}
+    .hero .cta{display:flex; gap:12px; flex-wrap:wrap; margin-top:22px}
+
+    /* Winners */
+    .winners{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:20px}
+    .mono{font-family:ui-monospace,monospace; font-size:13px; word-break:break-all}
+    .rank{margin:8px 0}
+    .small{font-size:13px; color:var(--muted)}
+
+    /* Responsive */
+    @media (max-width: 980px){ .grid-2{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="row">
+      <div class="brand">
+        <img src="logo.png" alt="Glory Tavern sign">
+        Glory Tavern
+      </div>
+      <div class="navlinks">
+        <a href="#about">About</a>
+        <a href="#coh">COH</a>
+        <a href="#rules">Rules</a>
+        <a href="#winners">Hall of Fame</a>
+        <a href="#faq">FAQ</a>
+      </div>
+      <a class="btn" href="#coh">Discover COH</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header class="hero" id="home">
+    <div class="row grid-2">
+      <div>
+        <h1>Welcome to the Glory Tavern</h1>
+        <p class="muted">A warm tavern for fair on-chain games. We craft tokens with clean mechanics, festive vibes, and community-first principles.</p>
+        <div class="cta">
+          <a class="btn" href="#about">Learn More</a>
+          <a class="btn outline" href="#coh">Our First Game</a>
+        </div>
+      </div>
+      <div class="card" style="text-align:center">
+        <img src="glorytavern.png" alt="Glory Tavern sign" style="max-width:260px; width:100%; height:auto; margin-bottom:10px">
+        <p class="muted" style="margin:0">Fun • Fair • Festive</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- ABOUT GLORY TAVERN -->
+  <section id="about">
+    <div class="row grid-2">
+      <div class="card">
+        <h2>About Glory Tavern</h2>
+        <p>Glory Tavern is like a cozy inn for game tokens. We bring projects to life with simple, transparent rules. No shady mechanics, no unfair advantages. Just fair play and community fun.</p>
+      </div>
+      <div class="card">
+        <h2>Our Approach</h2>
+        <p>We ensure launches are clean, fee distribution is transparent, and the community always benefits. A portion of fees sustains development and events, while each token ties into a playful on-chain experience.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTRODUCING COH -->
+  <section id="coh">
+    <div class="row grid-2">
+      <div>
+        <h2>Introducing Our First Token: Clash Of Hodlers (COH)</h2>
+        <p><b>Clash Of Hodlers</b> is a festive arena where wallets compete to secure the Top 10. The excitement builds with every move, and strategy plays a huge role in securing rewards.</p>
+        <ul>
+          <li>🏆 The <b>Top 3 holders</b> are rewarded each Round.</li>
+          <li>⏱ If the Top 3 changes in the last <b>10 minutes</b>, the countdown resets.</li>
+          <li>💰 Rewards = fees collected during the Round.</li>
+          <li>⚖️ Distribution: 60% to Top 3 (50/30/20), 35% to Glory Tavern, 5% buy & burn at Round end.</li>
+          <li>🎯 Many strategies can lead to victory — steady play, aggresive, alliances. Better check the tokens you own!</li>
+          <li>📺 Rounds begin during live streams. Fees collected between streams are added to the next Round.</li>
+        </ul>
+      </div>
+      <div class="card" style="text-align:center">
+        <h3>Titles of Honor</h3>
+        <div class="list">
+          <div>🥇 <b>King of Hodlers</b></div>
+          <div>🥈 <b>Champion of the Chain</b></div>
+          <div>🥉 <b>Guardian of the Treasury</b></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WINNERS -->
+  <section id="winners">
+    <div class="row">
+      <h2>Hall of Fame</h2>
+      <p class="muted">As Rounds conclude, the champions will be honored here.</p>
+      <div class="winners" id="hofGrid">
+        <div class="card">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <div class="row grid-2">
+      <div>
+        <h2>FAQ</h2>
+        <div class="card">
+          <h3>Why the 10-minute rule?</h3>
+          <p>It ensures a calm finish and prevents last-second snipes. If the Top 3 changes, the clock restarts.</p>
+        </div>
+        <div class="card">
+          <h3>When do Rounds start?</h3>
+          <p>Rounds begin during live streams. Fees collected between streams are added to the next Round’s rewards.</p>
+        </div>
+      </div>
+      <div>
+        <h2>Contact</h2>
+        <div class="card">
+          <p>Questions or partnerships? Join us on X.</p>
+          <a class="btn" href="#">Follow on X</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="row" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap">
+      <span class="badge">🍻 Glory Tavern © 2025</span>
+      <span class="badge">Fun • Fair • Festive</span>
+    </div>
+  </footer>
+</div>
+</body>
+</html>

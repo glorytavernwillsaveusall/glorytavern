@@ -1,0 +1,1326 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Clash Of Hodlers — Arena (TOP10_UPDATE + KOL Top3)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+     :root{
+      --bg:#0a0908; --bg2:#120f0e; --ink:#f8efe3; --muted:#cdbeb0; --line:#3c2f26;
+      --gold:#f5c147; --silver:#d9dee6; --bronze:#e2a977;
+      --emerald:#2ff0a1; --down:#ff6b6b; --neutral:#9aa5b4;
+      --shadow: 0 18px 40px rgba(0,0,0,.45);
+
+      /* marges/gouttières pour mid-pack */
+      --rows-pad: 12px;   /* marge interne du panneau #4→#10 */
+      --rows-gap: 10px;   /* espace entre cartes */
+
+      /* mid-pack crest */
+      --mid-crest-gap: 10px;           /* marge uniforme top/bottom/right */
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; color:var(--ink);
+      background:
+        radial-gradient(1100px 800px at 10% -10%, #2b231d 0%, transparent 55%),
+        radial-gradient(1200px 900px at 120% 0%, #37291f 0%, transparent 55%),
+        linear-gradient(180deg,var(--bg2),var(--bg));
+      font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;
+      overflow:hidden;
+    }
+
+    /* === FROZEN === pause toutes les animations/transitions des cartes et overlays */
+    .frozen * { animation-play-state: paused !important; transition: none !important; }
+
+    /* ===== HEADER ===== */
+    .app{ display:grid; grid-template-rows:auto 1fr; height:100vh; width:100vw; }
+    .hdr{
+      display:grid;
+      /* CHANGÉ: assure une vraie colonne extensible à droite pour coller .chips au bord */
+      grid-template-columns: minmax(0,1fr) auto minmax(0,1fr);
+      gap:16px; align-items:center;
+      padding:16px 18px; border-bottom:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(245,193,71,.08), rgba(0,0,0,0));
+    }
+    .hdr .brand{ justify-self:start; }
+    .hdr .timer{ justify-self:center; }
+    .hdr .chips{ justify-self:end; width:max-content; } /* CHANGÉ: collé à droite */
+
+    .brand{ display:flex; align-items:center; gap:14px; min-width:0; }
+    .logobox{
+      width:56px;height:56px;border-radius:50%; display:grid;place-items:center;
+      background: radial-gradient(44px 44px at 40% 30%, rgba(245,193,71,.18), rgba(0,0,0,0)),
+                  linear-gradient(180deg,#2f251f,#1b1512);
+      border:1px solid var(--line); box-shadow:var(--shadow);
+      flex:0 0 56px;
+    }
+    .title{ display:flex; flex-direction:column; gap:4px; min-width:0; }
+    .title h1{
+      font-family:Cinzel, serif; font-weight:800; margin:0;
+      font-size: clamp(22px, 3.4vw, 32px); letter-spacing:.6px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 2px 0 #000;
+    }
+    .meta{ display:flex; gap:10px; flex-wrap:wrap; color:var(--muted); font-size:12px }
+    .badge{ padding:6px 10px; border-radius:999px; font-weight:700; background:linear-gradient(180deg,#2c231d,#19130f); border:1px solid var(--line); }
+
+    .timer{
+      display:flex; align-items:center; gap:14px;
+      padding:10px 16px; border-radius:14px; background: linear-gradient(180deg, #2a211c, #18120e);
+      border:1px solid var(--line); box-shadow:var(--shadow);
+      white-space:nowrap; min-width:0; max-width:720px; overflow:hidden;
+    }
+    .timeBig{
+      font-family:Cinzel, serif; font-weight:800; letter-spacing:1px;
+      font-size: clamp(26px, 4vw, 44px); color:var(--gold); text-shadow:0 0 14px rgba(245,193,71,.25);
+    }
+    .bar{ height:10px; width:260px; border-radius:999px; background:#120e0c; border:1px solid var(--line); overflow:hidden }
+    .bar i{ display:block; height:100%; width:100%; transform-origin:left;
+      background:linear-gradient(90deg,#f0b22a,#ffde7a); box-shadow:inset 0 0 16px rgba(240,178,42,.45);
+    }
+    .tstatus{ font-size:12px; color:var(--muted); max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+    .chips{ display:flex; gap:10px; align-items:center; }
+    .chip{ padding:8px 10px; border-radius:10px; background:linear-gradient(180deg,#342920,#201915); border:1px solid #46382e; font-weight:800; white-space:nowrap; }
+
+    /* Masquer le badge prix USD (sans toucher au HTML) */
+    #priceBadge{ display:none !important; }
+
+    /* ===== MAIN ===== */
+    .arena{ display:grid; grid-template-columns: 1.3fr .7fr; gap:18px; padding:18px; min-height:0; }
+    @media (max-width: 1100px){ .arena{ grid-template-columns:1fr; grid-auto-rows:min-content; overflow:auto } }
+    .banners{ display:grid; grid-template-rows: 1fr 1fr 1fr; gap:14px; min-height:0; }
+
+    .list{
+      display:flex; flex-direction:column; min-height:0;
+      background: linear-gradient(180deg,#231b17,#15100d);
+      border:1px solid var(--line); border-radius:20px; box-shadow:var(--shadow); overflow:hidden;
+    }
+    .listHead{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 16px; border-bottom:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(245,193,71,.07), rgba(0,0,0,0));
+      font-weight:800; letter-spacing:.3px;
+      position:relative; /* overlay midStatus */
+    }
+
+    /* ==== CONTENEUR #4→#10 : grille + petites marges esthétiques ==== */
+    .rows{
+      flex:1;
+      display:grid;
+      grid-template-rows: repeat(7, minmax(0, 1fr)); /* 7 cartes réparties équitablement */
+      gap: var(--rows-gap);
+      padding: var(--rows-pad);
+      overflow:hidden;   /* plein écran propre, sans scroll */
+      min-height:0;
+    }
+
+    /* ===== CARDS ===== */
+    .card{
+      position:relative; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:center;
+      padding:16px 18px; border-radius:20px;
+      background: linear-gradient(180deg,#2b221d,#17110e);
+      border:1px solid var(--line); box-shadow:var(--shadow); min-height:0;
+      overflow:hidden;
+    }
+    .card > *{ position:relative; z-index:2; }
+    .card .left{ min-width:0; overflow:hidden; display:flex; flex-direction:column; height:100%; }
+
+    .rankTag{ display:none !important; }
+
+    /* ===== TOP 1–3 ===== */
+    .topline{ display:none; }
+    .rank1 .left, .rank2 .left, .rank3 .left{ display:grid; grid-template-rows:auto 1fr auto; }
+    .rank1 .topline, .rank2 .topline, .rank3 .topline{
+      display:flex; align-items:center; gap:12px; margin-bottom:auto;
+    }
+    .rankTagTop{
+      padding:8px 14px; border-radius:14px; font-weight:900; line-height:1;
+      background:linear-gradient(180deg,#3a2d24,#241c17); border:1px solid #4a3a2f; text-shadow:0 1px 0 #000;
+      color:inherit;
+    }
+    .topTitle{
+      justify-self:center; text-align:center; flex:1;
+      font-family:Cinzel, serif; font-weight:900; letter-spacing:.6px; text-shadow:0 3px 2px #000;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:inherit;
+    }
+    .rank1 .topline{ font-size: clamp(26px, 3.6vw, 44px); color:var(--gold); }
+    .rank2 .topline{ font-size: clamp(22px, 3.2vw, 38px); color:var(--silver); }
+    .rank3 .topline{ font-size: clamp(20px, 2.9vw, 34px); color:var(--bronze); }
+
+    .midspace{ min-height:8px; }
+    .bottom{ margin-top:auto; }
+
+    /* ===== KOL line ===== */
+    .kolLine{
+      order:0; display:block; width:100%;
+      font-weight:900; font-size: clamp(14px, 1.6vw, 20px);
+      background: linear-gradient(90deg,#ff66e0,#ff99eb,#ff66e0);
+      background-size: 200% auto;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 12px rgba(255,91,217,.6), 0 0 22px rgba(255,91,217,.5);
+      animation: kolShine 3s linear infinite;
+      margin: 0 0 4px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    @keyframes kolShine { 0%{background-position:0%} 100%{background-position:200%} }
+
+    .addr{ font-family:monospace; font-size:14px; color:#ffe7c2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:4px }
+    .tokens{ font-size:13px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:10px }
+    .rewardRow{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:4px }
+    .chipSmall{ padding:6px 8px; border-radius:9px; background:linear-gradient(180deg,#332920,#201915); border:1px solid #46382e; font-weight:800 }
+
+    /* ===== CRESTS — séparation stricte ===== */
+
+    /* Base visuelle commune (sans taille) */
+    .crest{
+      border-radius:14px; display:flex; align-items:center; justify-content:center; overflow:hidden;
+      background: radial-gradient(70px 70px at 40% 30%, rgba(255,255,255,.06), rgba(0,0,0,0)),
+                  linear-gradient(180deg,#32271f,#1a1411);
+      border:1px solid #43362d; filter: drop-shadow(0 6px 10px rgba(0,0,0,.5));
+      justify-self:end; position:relative;
+    }
+    .crest > svg { display:block }
+
+    /* === TOP 1 : taille & effets propres === */
+    .card.rank1 .crest{
+      width:72px; height:72px; min-width:72px;
+      transform: scale(1.18);
+    }
+
+    /* === TOP 2 : taille & effets propres === */
+    .card.rank2 .crest{
+      width:72px; height:72px; min-width:72px;
+      transform: scale(1.07);
+    }
+
+    /* === TOP 3 : taille & effets propres === */
+    .card.rank3 .crest{
+      width:72px; height:72px; min-width:72px;
+      transform: scale(0.98);
+    }
+
+    /* === MID-PACK (#4 → #10) : carré parfait, proportionnel, marges uniformes === */
+    .card:not(.rank1):not(.rank2):not(.rank3){
+      height: 100%;
+      min-height: 0;
+      align-items: stretch;                     /* permet à la colonne droite de s'étirer */
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .card:not(.rank1):not(.rank2):not(.rank3) .topline,
+    .card:not(.rank1):not(.rank2):not(.rank3) .midspace{ display:none !important; }
+    .card:not(.rank1):not(.rank2):not(.rank3) .left{ display:block; height:100%; }
+    .card:not(.rank1):not(.rank2):not(.rank3) .bottom{
+      display:grid; grid-template-rows: 1fr 1fr 1fr; height:100%;
+    }
+    .card:not(.rank1):not(.rank2):not(.rank3) .bottom > .topRow,
+    .card:not(.rank1):not(.rank2):not(.rank3) .bottom > .addr,
+    .card:not(.rank1):not(.rank2):not(.rank3) .bottom > .tokens{
+      margin:0; padding:0; height:100%; display:flex; align-items:center; justify-content:flex-start; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
+    }
+
+    /* MID-PACK (#4 → #10) : wallet plus petit et sobre */
+    .card:not(.rank1):not(.rank2):not(.rank3) .addr{
+      font-size: clamp(14px, 1.5vw, 20px);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-weight: 600;
+      letter-spacing: .1px;
+      color: #ffe7c2;
+      text-shadow: 0 1px 0 #000;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin: 0;
+    }
+    .card:not(.rank1):not(.rank2):not(.rank3) .topRow{
+      font-size: clamp(12px, 1.3vw, 15px);
+    }
+    .card:not(.rank1):not(.rank2):not(.rank3) .tokens{
+      font-size: clamp(12px, 1.3vw, 15px);
+    }
+    .card:not(.rank1):not(.rank2):not(.rank3) .rewardRow{ display:none; }
+
+    /* Carré mid-pack garanti */
+    .card:not(.rank1):not(.rank2):not(.rank3) .crest{
+      align-self:stretch;
+      height: calc(100% - (var(--mid-crest-gap) * 2));
+      width: auto;
+      min-width: 0;
+      aspect-ratio: 1 / 1;                      /* => carré parfait */
+      margin: var(--mid-crest-gap) var(--mid-crest-gap) var(--mid-crest-gap) 0;
+      box-sizing: border-box;
+    }
+    .card:not(.rank1):not(.rank2):not(.rank3) .crest > svg{ width:60%; height:60%; }
+
+    /* ===== Effets Top3 — V5 EDGE PULSE CLEAN ===== */
+    .card.rank1, .card.rank2, .card.rank3 { position: relative; overflow: hidden; will-change: transform, opacity; }
+    .card.rank1 > *, .card.rank2 > *, .card.rank3 > * { position: relative; z-index: 2; }
+
+    .rank1 { animation: edgePulse1 1600ms ease-in-out infinite; box-shadow: 0 0 0 1px var(--line), 0 18px 40px rgba(0,0,0,.45); }
+    .rank1 .crest::after{ content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+      background: linear-gradient(100deg, transparent 0%, rgba(255,255,255,.25) 50%, transparent 100%); background-size:200% 100%;
+      mix-blend-mode: screen; opacity:.0; animation: crestGlint1 2400ms ease-in-out infinite; }
+    .rank2 { animation: edgePulse2 1900ms ease-in-out infinite; box-shadow: 0 0 0 1px var(--line), 0 18px 40px rgba(0,0,0,.45); }
+    .rank2 .crest::after{ content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+      background: linear-gradient(100deg, transparent 0%, rgba(255,255,255,.18) 50%, transparent 100%); background-size:200% 100%;
+      mix-blend-mode: screen; opacity:.0; animation: crestGlint2 3200ms ease-in-out infinite; }
+    .rank3 { animation: edgePulse3 2200ms ease-in-out infinite; box-shadow: 0 0 0 1px var(--line), 0 18px 40px rgba(0,0,0,.45); }
+    .rank3 .crest::after{ content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+      background: linear-gradient(100deg, transparent 0%, rgba(255,255,255,.14) 50%, transparent 100%); background-size:200% 100%;
+      mix-blend-mode: screen; opacity:.0; animation: crestGlint3 4200ms ease-in-out infinite; }
+
+    @keyframes edgePulse1{ 0%,100%{ box-shadow:0 0 0 1px var(--line),0 18px 40px rgba(0,0,0,.45)} 50%{ box-shadow:0 0 0 1px rgba(245,193,71,.60),0 18px 40px rgba(0,0,0,.45),0 0 28px rgba(245,193,71,.28)} }
+    @keyframes edgePulse2{ 0%,100%{ box-shadow:0 0 0 1px var(--line),0 18px 40px rgba(0,0,0,.45)} 50%{ box-shadow:0 0 0 1px rgba(217,222,230,.45),0 18px 40px rgba(0,0,0,.45),0 0 22px rgba(217,222,230,.22)} }
+    @keyframes edgePulse3{ 0%,100%{ box-shadow:0 0 0 1px var(--line),0 18px 40px rgba(0,0,0,.45)} 50%{ box-shadow:0 0 0 1px rgba(226,169,119,.40),0 18px 40px rgba(0,0,0,.45),0 0 18px rgba(226,169,119,.18)} }
+    @keyframes crestGlint1{ 0%{background-position:200% 0;opacity:0} 20%,60%{opacity:.9} 100%{background-position:-200% 0;opacity:0} }
+    @keyframes crestGlint2{ 0%{background-position:200% 0;opacity:0} 25%,65%{opacity:.6} 100%{background-position:-200% 0;opacity:0} }
+    @keyframes crestGlint3{ 0%{background-position:200% 0;opacity:0} 30%,70%{opacity:.5} 100%{background-position:-200% 0;opacity:0} }
+
+    /* ===== Top 3 compact ===== */
+    .rank1 .bottom, .rank2 .bottom, .rank3 .bottom{ display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 12px; }
+    .rank1 .addr, .rank2 .addr, .rank3 .addr, .rank1 .tokens, .rank2 .tokens, .rank3 .tokens{ margin:0; order:1; flex:0 1 auto; white-space:nowrap; }
+    .rank1 .addr, .rank2 .addr, .rank3 .addr{ flex:1 1 auto; overflow:hidden; text-overflow:ellipsis; font-family:monospace; font-weight:900; }
+    .rank1 .tokens, .rank2 .tokens, .rank3 .tokens{ font-weight:800; color:#ffe7c2; }
+
+    /* >>> AUGMENTATION PROGRESSIVE DES WALLET TOP 3 <<< */
+    .rank3 .addr{ color:var(--bronze); font-size: clamp(16px, 2.0vw, 24px); }
+    .rank2 .addr{ color:var(--silver); font-size: clamp(18px, 2.3vw, 28px); }
+    .rank1 .addr{ color:var(--gold);   font-size: clamp(20px, 2.6vw, 32px); }
+
+    /* On garde la parité visuelle wallet/tokens pour le Top3 */
+    .rank3 .tokens{ font-size: clamp(16px, 2.0vw, 24px); }
+    .rank2 .tokens{ font-size: clamp(18px, 2.3vw, 28px); }
+    .rank1 .tokens{ font-size: clamp(20px, 2.6vw, 32px); }
+
+    .rank1 .rewardRow, .rank2 .rewardRow, .rank3 .rewardRow{ order:2; flex-basis:100%; margin-top:4px; }
+
+    /* ========================= OVERLAYS (messages) ========================= */
+    .cardFlash{ position:absolute; inset:0; pointer-events:none; z-index:6; contain:layout paint; }
+    .cardFlashText{
+      position:absolute; top:50%; left:50%;
+      transform: translate(-50%,-50%) scale(.9);
+      margin:0; padding:0; white-space:nowrap;
+      font-family:Cinzel, serif; font-weight:900; letter-spacing:.6px; text-shadow:0 3px 2px #000;
+      animation: flashRank 3s ease both;
+    }
+    .rank1 .cardFlashText{ color:var(--gold);   font-size: clamp(28px,4.2vw,56px); }
+    .rank2 .cardFlashText{ color:var(--silver); font-size: clamp(24px,3.6vw,44px); }
+    .rank3 .cardFlashText{ color:var(--bronze); font-size: clamp(20px,3vw,34px); }
+
+    @keyframes flashRank{
+      0%   { opacity:0;   transform:translate(-50%,-50%) scale(.9); }
+      12%  { opacity:1;   transform:translate(-50%,-50%) scale(1); }
+      75%  { opacity:.98; transform:translate(-50%,-50%) scale(1.05); }
+      100% { opacity:0;   transform:translate(-50%,-58%) scale(1.1); }
+    }
+
+    #midStatus{
+      position:absolute; inset:0; display:grid; place-items:center; pointer-events:none; user-select:none; opacity:0;
+      font-family: Inter, system-ui, Segoe UI, Arial, sans-serif; font-weight:800; letter-spacing:.3px; color: var(--ink);
+      font-size: clamp(14px, 2vw, 18px); will-change:transform,opacity; contain:layout paint;
+    }
+    #midStatus.midStatusShow{ animation: midFlash 3s ease both; }
+    @keyframes midFlash{
+      0%   { opacity:0; transform:scale(.9); }
+      15%  { opacity:1; transform:scale(1); }
+      75%  { opacity:.95; transform:scale(1.02); }
+      100% { opacity:0; transform:scale(1.08) translateY(-6px); }
+    }
+
+    .flashLayer{ position:fixed; inset:0; pointer-events:none; z-index: 9999; }
+    .flashItem{ position:absolute; left:0; top:0; width:0; height:0; display:block; contain:layout paint; will-change: transform, opacity; }
+    .flashItem .cardFlashText{
+      position:absolute; left:50%; top:50%; transform: translate(-50%,-50%) scale(.9);
+      margin:0; padding:0; white-space:nowrap;
+      font-family:Cinzel, serif; font-weight:900; letter-spacing:.6px; text-shadow:0 3px 2px #000;
+      font-size: clamp(22px, 3.4vw, 32px);
+      animation: flashRank 3s ease both;
+    }
+    .flashItem.rank1 .cardFlashText{ color: var(--gold);   font-size: clamp(26px, 3.6vw, 44px); }
+    .flashItem.rank2 .cardFlashText{ color: var(--silver); font-size: clamp(22px, 3.2vw, 38px); }
+    .flashItem.rank3 .cardFlashText{ color: var(--bronze); font-size: clamp(20px, 2.9vw, 34px); }
+
+    @keyframes flashRank{
+      0%   { opacity:0;   transform:translate(-50%,-50%) scale(.9); }
+      12%  { opacity:1;   transform:translate(-50%,-50%) scale(1); }
+      75%  { opacity:.98; transform:translate(-50%,-50%) scale(1.05); }
+      100% { opacity:0;   transform:translate(-50%,-58%) scale(1.1); }
+    }
+
+    /* ===== Fees → Rewards Top3 : big visual ===== */
+    .card.rewardPulse::after{
+      content:""; position:absolute; inset:-2px; border-radius:20px;
+      background:
+        radial-gradient(120% 120% at 50% 50%, rgba(245,193,71,.22), transparent 60%),
+        linear-gradient(180deg, rgba(245,193,71,.12), rgba(0,0,0,0));
+      opacity:0; animation: feesFlash 900ms ease-out both; z-index:1;
+    }
+    .card.rewardPulse .rewardRow{ transform-origin:center; animation: rewardPop 600ms cubic-bezier(.2,.65,.2,1) both; }
+    @keyframes feesFlash{ 0%{ opacity:0; filter:blur(6px) saturate(1.2) } 20%{ opacity:1; } 100%{ opacity:0; filter:blur(10px) saturate(1) } }
+    @keyframes rewardPop{ 0%{ transform:scale(.94); } 55%{ transform:scale(1.06); } 100%{ transform:scale(1); } }
+
+    /* === NEW: TX banner centré, très visible (texte non cliquable) === */
+    .txBanner{
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:18px; z-index:3;
+      pointer-events:none; font-family:monospace; font-weight:900; letter-spacing:.2px; color:#fff7d6; text-shadow:0 2px 10px rgba(0,0,0,.8);
+      background: radial-gradient(50% 60% at 50% 40%, rgba(245,193,71,.16), transparent 60%);
+      font-size: clamp(12px, 1.6vw, 18px); line-height:1.3; word-break: break-all;
+    }
+
+    /* === NEW: Overlay "Next Round starting in" === */
+    .nextRoundOverlay{
+      position:fixed; inset:0; display:none; align-items:center; justify-content:center; flex-direction:column; z-index:10000; pointer-events:none;
+      background: radial-gradient(60% 60% at 50% 45%, rgba(245,193,71,.12), transparent 65%),
+                  linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.6));
+      text-align:center;
+    }
+    .nextRoundOverlay.show{ display:flex; }
+    .nextRoundTitle{
+      font-family:Cinzel, serif; font-weight:900; letter-spacing:.8px; color:#ffe7c2; text-shadow:0 3px 14px rgba(0,0,0,.8);
+      font-size: clamp(22px, 3.6vw, 40px); margin: 0 0 10px 0;
+    }
+    .nextRoundTimer{
+      font-family:Cinzel, serif; font-weight:900; letter-spacing:1px; color:var(--gold); text-shadow:0 0 18px rgba(245,193,71,.35);
+      font-size: clamp(38px, 6vw, 90px); margin:0;
+    }
+
+    /* === Rank badge only for #4 → #10 (safe, no side effects) === */
+    .card:not(.rank1):not(.rank2):not(.rank3) .topRow{
+      display:flex;
+      align-items:center;
+      gap:10px;               /* espace entre badge et "KOL detected" */
+    }
+    .card:not(.rank1):not(.rank2):not(.rank3) .topRow .rankNum{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:6px 12px;
+      border-radius:14px;
+      font-weight:900;
+      line-height:1;
+      white-space:nowrap;
+      background:linear-gradient(180deg,#3a2d24,#241c17);
+      border:1px solid #4a3a2f;
+      color:inherit;
+      text-shadow:0 1px 0 #000;
+      font-size: clamp(12px, 1.3vw, 16px);
+      min-width:44px;
+      text-align:center;
+      flex:0 0 auto;          /* ne pas déformer le texte KOL */
+    }
+    .card:not(.rank1):not(.rank2):not(.rank3) .topRow .kolMid{
+      flex:1 1 auto;          /* le texte KOL prend le reste */
+      min-width:0;            /* permet l'ellipsis propre */
+    }
+  </style>
+</head>
+
+
+
+
+
+<body>
+  <div class="app">
+    <header class="hdr">
+      <div class="brand">
+        <div class="logobox" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+            <path d="M3 7l4 4 5-7 5 7 4-4v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke="#3b2400" stroke-width="2" fill="#ffd56a"/>
+          </svg>
+        </div>
+        <div class="title">
+          <h1 id="appTitle">Clash Of Hodlers — <span id="roundTag">Round 1</span></h1>
+          <div class="meta">
+            <span class="badge" id="mintBadge">MINT: —</span>
+            <span class="badge" id="priceBadge">SOL: —</span>
+            <span class="badge" id="wsBadge">WS: connecting…</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="timer">
+        <div class="timeBig" id="timeBig">10:00</div>
+        <div class="bar"><i id="barFill" style="transform:scaleX(1)"></i></div>
+        <div class="tstatus" id="tStatus">waiting for first update…</div>
+      </div>
+
+      <div class="chips">
+        <div class="chip" id="feesChip">Round Rewards: <span class="sol">— SOL</span> / <span class="usd">— USD</span></div>
+      </div>
+    </header>
+
+    <main class="arena">
+      <section class="banners" id="banners"></section>
+      <section class="list">
+        <div class="listHead">
+          <span>Hodlers #4 → #10</span>
+          <span id="midStatus"></span>
+        </div>
+        <div class="rows" id="rows"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Calque overlay pour les flashes Top1–3 -->
+  <div class="flashLayer" id="flashLayer"></div>
+
+  <!-- Overlay Next Round -->
+  <div class="nextRoundOverlay" id="nextRoundOverlay" aria-hidden="true">
+    <h2 class="nextRoundTitle">Next Round starting in</h2>
+    <div class="nextRoundTimer" id="nextRoundTimer">01:00</div>
+  </div>
+
+  <!-- SVG defs -->
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <linearGradient id="goldGrad" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="#fff0a8"/><stop offset="45%" stop-color="#ffd56a"/><stop offset="100%" stop-color="#f2a300"/>
+      </linearGradient>
+      <linearGradient id="silverGrad" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="#ffffff"/><stop offset="50%" stop-color="#d9dee6"/><stop offset="100%" stop-color="#9aa5b4"/>
+      </linearGradient>
+      <linearGradient id="bronzeGrad" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="#ffe0c0"/><stop offset="50%" stop-color="#e2a977"/><stop offset="100%" stop-color="#a7662e"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <script>
+    const urlParams = new URLSearchParams(location.search);
+    const WS_URL = urlParams.get('ws') || 'ws://localhost:8787';
+    const ROUND_MS = 10 * 60 * 1000;
+
+    // ===== ROUND (config & affichage) =====
+// Backend is the source of truth for the round number (via CURRENT_ROUND_ID).
+let ROUND_NO = 1; // default until the server sends CURRENT_ROUND_ID
+
+function applyRoundLabel(){
+  const roundEl = document.getElementById('roundTag');
+  if (roundEl) roundEl.textContent = `Round ${ROUND_NO}`;
+  document.title = `Clash Of Hodlers — Round ${ROUND_NO} — Arena (TOP10_UPDATE + KOL Top3)`;
+}
+applyRoundLabel();
+
+    // ===== STATE =====
+    let ws, reconnectDelay = 900;
+    let countdownStart = null;
+    let lastTop3FP = null;
+    let lastTop410FP = null;
+    let mounted = false;
+
+    // Round end / payouts / next-round overlay
+    let frozen = false;
+    let roundEnded = false;
+    let payoutSent = false;
+    let nextRoundCountdownRunning = false;
+    const payoutDone = {1:false, 2:false, 3:false};
+    const NEXT_ROUND_COUNTDOWN_MS = 60 * 1000;
+    let roundEndPlayed = false;
+
+    let currentRewards = null;
+
+    const elementsByWallet = new Map();
+    const lastRankByWallet = new Map();
+
+    // DOM refs
+    const elMint = document.getElementById('mintBadge');
+    const elPrice = document.getElementById('priceBadge');
+    const elWS = document.getElementById('wsBadge');
+    const elTime = document.getElementById('timeBig');
+    const elFill = document.getElementById('barFill');
+    const elTStatus = document.getElementById('tStatus');
+    const elFees = document.getElementById('feesChip');
+    const elBanners = document.getElementById('banners');
+    const elRows = document.getElementById('rows');
+
+    // Overlay Next Round
+    const elNextOverlay = document.getElementById('nextRoundOverlay');
+    const elNextTimer = document.getElementById('nextRoundTimer');
+
+    // ===== AUDIO (chemins) =====
+    const SFX_URLS = {
+      ambient: 'assets/ambient.mp3',
+      top1: 'assets/top1.mp3',
+      top2: 'assets/top2.mp3',
+      top3: 'assets/top3.mp3',
+      fees: 'assets/fees.mp3',
+      midVar: ['assets/mid1.mp3','assets/mid2.mp3','assets/mid3.mp3','assets/mid4.mp3','assets/mid5.mp3'],
+      payout: 'assets/payout.mp3',
+      roundEnd: 'assets/round_end.mp3',
+    };
+
+    // ===== AUDIO MANAGER (pooling, no cut) =====
+    const AudioMgr = (() => {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const master = ctx.createGain();
+  master.gain.value = 1.0;
+  master.connect(ctx.destination);
+
+  const buffers = new Map();  // Map<string, AudioBuffer>
+  const actives = new Set();  // keep refs to avoid GC before 'ended'
+
+  // resume context on first user gesture (OBS/CEF peut suspendre)
+  const resume = () => { if (ctx.state !== 'running') ctx.resume().catch(()=>{}); };
+  window.addEventListener('pointerdown', resume, {once:true});
+  window.addEventListener('keydown', resume, {once:true});
+
+  async function loadOne(url){
+    if (buffers.has(url)) return buffers.get(url);
+    const res = await fetch(url, {cache:'force-cache'});
+    const arr = await res.arrayBuffer();
+    const buf = await ctx.decodeAudioData(arr);
+    buffers.set(url, buf);
+    return buf;
+  }
+
+  async function loadAll(){
+    const urls = [
+      SFX_URLS.ambient, SFX_URLS.top1, SFX_URLS.top2, SFX_URLS.top3,
+      SFX_URLS.fees, SFX_URLS.payout, SFX_URLS.roundEnd,
+      ...SFX_URLS.midVar
+    ];
+    await Promise.all(urls.map(loadOne));
+  }
+
+  function playBuffer(url, {volume=0.9, loop=false}={}){
+    const buf = buffers.get(url);
+    if (!buf) return;
+
+    const gain = ctx.createGain();
+    gain.gain.value = volume;
+    gain.connect(master);
+
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = loop;
+    src.connect(gain);
+
+    // garder la ref jusqu'à la fin
+    const token = {src, gain};
+    actives.add(token);
+    src.onended = () => {
+      try { src.disconnect(); gain.disconnect(); } catch(_){}
+      actives.delete(token);
+    };
+
+    try {
+      // start propre (jamais currentTime=0 qui reset une instance existante)
+      if (ctx.state !== 'running') ctx.resume().catch(()=>{});
+      src.start(0);
+    } catch(_){}
+    return token;
+  }
+
+  // Ambiance en boucle (une seule voix loopée)
+  let ambientNode = null;
+  function startAmbient(){
+    if (ambientNode) return;
+    ambientNode = playBuffer(SFX_URLS.ambient, {volume:0.35, loop:true});
+  }
+
+  // Petits cooldowns anti-spam (ms)
+  const lastPlay = new Map();
+  function guard(key, cd=40){
+    const now = performance.now();
+    const prev = lastPlay.get(key) || 0;
+    if (now - prev < cd) return false;
+    lastPlay.set(key, now);
+    return true;
+  }
+
+  // Charge tout puis démarre l’ambiance
+  loadAll().then(startAmbient).catch(()=>{});
+
+  return {
+    playTop(rank){
+      if (typeof frozen !== 'undefined' && frozen) return;
+      if (rank===1 && guard('top1')) playBuffer(SFX_URLS.top1, {volume:0.95});
+      else if (rank===2 && guard('top2')) playBuffer(SFX_URLS.top2, {volume:0.95});
+      else if (rank===3 && guard('top3')) playBuffer(SFX_URLS.top3, {volume:0.95});
+    },
+    playMid(){
+      if (typeof frozen !== 'undefined' && frozen) return;
+      const arr = SFX_URLS.midVar;
+      const url = arr[(Math.random()*arr.length)|0];
+      if (guard('mid', 60)) playBuffer(url, {volume:0.9});
+    },
+    playFees(){
+      if (typeof frozen !== 'undefined' && frozen) return;
+      if (guard('fees', 120)) playBuffer(SFX_URLS.fees, {volume:0.9});
+    },
+    playPayout(){ playBuffer(SFX_URLS.payout, {volume:0.95}); },
+    playRoundEnd(){ playBuffer(SFX_URLS.roundEnd, {volume:0.95}); }
+  };
+})();
+
+    // ===== Utils =====
+    const nf6 = new Intl.NumberFormat(undefined, { maximumFractionDigits: 6 });
+    const nff = new Intl.NumberFormat(undefined, { style:'currency', currency:'USD', maximumFractionDigits: 2 });
+
+    function formatTokens(n){ return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "  "); }
+    function fmtTime(ms){ const s=Math.max(0,Math.floor(ms/1000)); return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
+    function fpTop3(list){ const a=list.slice(0,3).map(x=>x.wallet||'NONE'); while(a.length<3)a.push('NONE'); return a.join('|'); }
+    function fpTop410(list){ const a=list.slice(3,10).map(x=>x.wallet||'NONE'); while(a.length<7)a.push('NONE'); return a.join('|'); }
+
+    const HONOR_TITLES = { 1: "King of the Hodlers", 2: "Champion of the Chain", 3: "Guardian of the Treasury" };
+
+    function crownSVG(kind){
+      const id = kind==='gold'?'goldGrad':kind==='silver'?'silverGrad':'bronzeGrad';
+      return `<svg viewBox="0 0 64 64"><path d="M6 50h52l-5-28-12 9-9-16-9 16-12-9-5 28z" fill="url(#${id})"/></svg>`;
+    }
+    function arrowSVG(delta){
+      if (delta < 0) return `<svg viewBox="0 0 24 24"><path d="M12 4l7 7h-4v9H9v-9H5l7-7z" fill="var(--emerald)"/></svg>`;
+      if (delta > 0) return `<svg viewBox="0 0 24 24"><path d="M12 20l-7-7h4V4h6v9h4l-7 7z" fill="var(--down)"/></svg>`;
+      return `<svg viewBox="0 0 24 24"><path d="M4 12h16" stroke="var(--neutral)" stroke-width="3" stroke-linecap="round"/></svg>`;
+    }
+
+    function rewardsFor(rank, rewards){
+      if (rank===1) return rewards?.top1 || {sol:0,usd:0};
+      if (rank===2) return rewards?.top2 || {sol:0,usd:0};
+      if (rank===3) return rewards?.top3 || {sol:0,usd:0};
+      return {sol:0,usd:0};
+    }
+
+    // === Tween numérique
+    function animateNumber(el, from, to, fmt, duration=900){
+      const start = performance.now();
+      function step(t){
+        const k = Math.min(1, (t - start) / duration);
+        const v = from + (to - from) * (k < 1 ? (1 - Math.pow(1 - k, 3)) : 1);
+        el.textContent = fmt(v);
+        if (k < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    // === Animation des rewards Top 1–3 (visuelle + chiffres)
+    function animateTop3Rewards(rewards){
+      if (frozen) return;
+      for (let rank=1; rank<=3; rank++){
+        const card = document.querySelector(`.card.rank${rank}`);
+        if (!card) continue;
+
+        const solEl = card.querySelector('.rewardSol .sol');
+        const usdEl = card.querySelector('.rewardUsd .usd');
+        if (!solEl || !usdEl) continue;
+
+        const fromSol = parseFloat((solEl.textContent || '0').replace(/[^\d. -]/g,'')) || 0;
+        const fromUsd = parseFloat((usdEl.textContent || '0').replace(/[^\d. -]/g,'')) || 0;
+
+        const {sol:toSol=0, usd:toUsd=0} = rewardsFor(rank, rewards);
+
+        const fmtSol = v => `${nf6.format(v)} SOL`;
+        const fmtUsd = v => nff.format(v);
+
+        animateNumber(solEl, fromSol, Number(toSol)||0, fmtSol, 900);
+        animateNumber(usdEl, fromUsd, Number(toUsd)||0, fmtUsd, 900);
+
+        card.classList.add('rewardPulse');
+        setTimeout(()=> card.classList.remove('rewardPulse'), 950);
+      }
+    }
+
+    // === Cartes ===
+    function createCard(wallet){
+      const el=document.createElement('div');
+      el.className='card';
+      el.dataset.wallet=wallet;
+      el.innerHTML=`
+        <div class="left">
+          <div class="topline">
+            <div class="rankTagTop">#?</div>
+            <div class="topTitle"></div>
+          </div>
+          <div class="midspace"></div>
+          <div class="bottom">
+            <div class="kolLine" style="display:none"></div>
+            <div class="topRow" style="display:none">
+              <span class="rankNum"></span>
+              <span class="kolMid"></span>
+            </div>
+            <div class="addr"></div>
+            <div class="tokens"></div>
+            <div class="rewardRow">
+              <div class="chipSmall rewardSol">Reward: <span class="sol" style="margin-left:6px">0 SOL</span></div>
+              <div class="chipSmall rewardUsd"><span class="usd">$0.00</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="crest crownWrap"></div>
+      `;
+      return el;
+    }
+
+    function fillCard(el, rank, tokens, reward, _crownKind, movementDelta, kolName){
+      const rankTop = el.querySelector('.rankTagTop');
+      if (rankTop) rankTop.textContent = `#${rank}`;
+
+      const title = el.querySelector('.topTitle');
+      if (rank<=3){ title.textContent = HONOR_TITLES[rank] || ""; }
+      else { title.textContent = ""; }
+
+      const kolDivTop3 = el.querySelector('.kolLine');
+      const topRow  = el.querySelector('.topRow');
+      const rankNum = el.querySelector('.rankNum');
+      const kolMid  = el.querySelector('.kolMid');
+
+      if (rank <= 3){
+        if (kolName){
+          kolDivTop3.textContent = `KOL detected: ${kolName}`;
+          kolDivTop3.style.display = 'block';
+        } else {
+          kolDivTop3.textContent = '';
+          kolDivTop3.style.display = 'none';
+        }
+        if (topRow) topRow.style.display = 'none';
+      } else {
+        if (rankNum) rankNum.textContent = `#${rank}`;
+        if (kolMid)  kolMid.textContent  = kolName ? `KOL detected: ${kolName}` : '';
+        if (topRow)  topRow.style.display = 'flex';
+        if (kolDivTop3) kolDivTop3.style.display = 'none';
+      }
+
+      el.querySelector('.addr').textContent = el.dataset.wallet;
+      const rounded = Math.round(+tokens || 0);
+      el.querySelector('.tokens').textContent = `${formatTokens(rounded)} tokens`;
+
+      el.classList.remove('rank1','rank2','rank3');
+      if (rank===1) el.classList.add('rank1');
+      else if (rank===2) el.classList.add('rank2');
+      else if (rank===3) el.classList.add('rank3');
+
+      const crest = el.querySelector('.crest');
+      if (rank<=3){
+        const kind = rank===1?'gold':rank===2?'silver':'bronze';
+        crest.innerHTML = crownSVG(kind);
+      } else {
+        crest.innerHTML = arrowSVG(movementDelta);
+      }
+
+      if (rank <= 3){
+        const solEl = el.querySelector('.rewardSol .sol');
+        const usdEl = el.querySelector('.rewardUsd .usd');
+        const solVal = Number(reward?.sol) || 0;
+        const usdVal = Number(reward?.usd) || 0;
+        if (solEl) solEl.textContent = `${nf6.format(solVal)} SOL`;
+        if (usdEl) usdEl.textContent = nff.format(usdVal);
+      }
+    }
+
+    function placeCard(el, rank){
+      if (rank<=3){
+        if (el.parentElement!==elBanners) elBanners.appendChild(el);
+        const idx=rank-1;
+        if (elBanners.children[idx]!==el) elBanners.insertBefore(el, elBanners.children[idx]||null);
+      } else {
+        if (el.parentElement!==elRows) elRows.appendChild(el);
+        const idx=rank-4;
+        if (elRows.children[idx]!==el) elRows.insertBefore(el, elRows.children[idx]||null);
+      }
+    }
+
+    // ===== Flash Top1–3 overlay indépendant du layout =====
+    function flashOnCard(rank, text){
+      if (frozen) return;
+      const selector = rank===1?'.card.rank1':rank===2?'.card.rank2':'.card.rank3';
+      const card = document.querySelector(selector);
+      if(!card) return;
+
+      const layer = document.getElementById('flashLayer');
+      if(!layer) return;
+
+      const item  = document.createElement('div');
+      item.className = `flashItem rank${rank}`;
+
+      const label = document.createElement('div');
+      label.className = 'cardFlashText';
+      label.textContent = text;
+
+      item.appendChild(label);
+      layer.appendChild(item);
+
+      let running = true;
+      function follow(){
+        if(!running) return;
+        if (document.body.contains(card)) {
+          const r = card.getBoundingClientRect();
+          item.style.left   = `${r.left}px`;
+          item.style.top    = `${r.top}px`;
+          item.style.width  = `${r.width}px`;
+          item.style.height = `${r.height}px`;
+          requestAnimationFrame(follow);
+        } else {
+          running = false;
+          item.remove();
+        }
+      }
+      follow();
+
+      label.addEventListener('animationend', () => {
+        running = false;
+        item.remove();
+      }, { once:true });
+    }
+
+    // ===== Flash mid =====
+    function flashMid(){
+      if (frozen) return;
+      const el = document.getElementById('midStatus');
+      if(!el) return;
+      el.textContent = "TOP 4-10 CHANGED";
+      el.classList.remove('midStatusShow');
+      void el.offsetWidth;
+      el.classList.add('midStatusShow');
+      setTimeout(()=>{ el.textContent = ""; el.classList.remove('midStatusShow'); }, 1500);
+    }
+
+    // ===== FLIP reorder =====
+    function flipReorderWithPush(applyDOM, deltaByEl){
+      if (frozen) { applyDOM(); return; }
+      const cardsBefore = [...document.querySelectorAll('.card')];
+      const first = new Map(cardsBefore.map(el => [el, el.getBoundingClientRect()])); applyDOM();
+      const cardsAfter = [...document.querySelectorAll('.card')];
+      const last = new Map(cardsAfter.map(el => [el, el.getBoundingClientRect()]));
+
+      cardsAfter.forEach(el=>{
+        const a = first.get(el);
+        const b = last.get(el);
+        if(!b) return;
+        const distanceY = a ? Math.abs(a.top - b.top) : b.height + 24;
+        const duration = Math.min(900, 280 + distanceY * 0.5);
+        const delta = (deltaByEl.get(el) || 0);
+        const delay = Math.max(0, Math.min(240, Math.abs(delta)-1)) * 30;
+
+        if(a){
+          const dx = a.left - b.left;
+          const dy = a.top  - b.top;
+          const dsx = a.width  / Math.max(1,b.width);
+          const dsy = a.height  / Math.max(1,b.height);
+          if (dx || dy || Math.abs(dsx-1) > 1e-3 || Math.abs(dsy-1) > 1e-3){
+            el.animate(
+              [
+                { transform:`translate(${dx}px,${dy}px) scale(${dsx},${dsy})` },
+                { transform:'translate(0,0) scale(1,1)' }
+              ],
+              { duration, delay, easing:'cubic-bezier(.20,.65,.20,1)' }
+            );
+          }
+        } else {
+          el.animate(
+            [
+              { transform:`translateY(${-(b.height+24)}px)`, opacity:0 },
+              { transform:'translateY(0)', opacity:1 }
+            ],
+            { duration: Math.max(420, duration), delay: 0, easing:'cubic-bezier(.20,.65,.20,1)' }
+          );
+        }
+      });
+    }
+
+    // ===== Mount / Update =====
+    function mountInitial(sortedTen, rewards){
+      sortedTen.forEach(({rank,wallet,total_tokens,kol})=>{
+        const el=createCard(wallet);
+        elementsByWallet.set(wallet, el);
+        lastRankByWallet.set(wallet, rank);
+        fillCard(el, rank, total_tokens, rewardsFor(rank,rewards), null, 0, kol);
+        placeCard(el, rank);
+      });
+    }
+
+    function updateRanks(sortedTen, rewards){
+      if (frozen) return;
+
+      const incomingWallets = new Set(sortedTen.map(x=>x.wallet));
+
+      for (const [w, el] of elementsByWallet){
+        if(!incomingWallets.has(w)){
+          el.remove();
+          elementsByWallet.delete(w);
+          lastRankByWallet.delete(w);
+        }
+      }
+      for (const {wallet} of sortedTen){
+        if(!elementsByWallet.has(wallet)){
+          const el=createCard(wallet);
+          elementsByWallet.set(wallet, el);
+          lastRankByWallet.set(wallet, 11);
+        }
+      }
+
+      const deltaByEl = new Map();
+      const applyDOM = ()=>{
+        sortedTen.forEach(({rank,wallet,total_tokens,kol})=>{
+          const el=elementsByWallet.get(wallet);
+          const prev=lastRankByWallet.get(wallet) ?? rank;
+          const delta = prev - rank;
+          deltaByEl.set(el, delta);
+          fillCard(el, rank, total_tokens, rewardsFor(rank,rewards), null, -delta, kol);
+          placeCard(el, rank);
+        });
+      };
+
+      flipReorderWithPush(applyDOM, deltaByEl);
+      sortedTen.forEach(({rank,wallet})=> lastRankByWallet.set(wallet, rank));
+
+      const newTop3FP = fpTop3(sortedTen);
+      const newTop410FP = fpTop410(sortedTen);
+
+      if (lastTop3FP===null || lastTop410FP===null){
+        lastTop3FP = newTop3FP; lastTop410FP = newTop410FP;
+        elTStatus.textContent='synced';
+        return;
+      }
+
+      const prevParts=(lastTop3FP||'').split('|');
+      const currTop3=sortedTen.slice(0,3).map(x=>x.wallet||'NONE');
+
+      const changed = [];
+      if (currTop3[0] !== prevParts[0]) changed.push(1);
+      if (currTop3[1] !== prevParts[1]) changed.push(2);
+      if (currTop3[2] !== prevParts[2]) changed.push(3);
+
+      const midChanged = (newTop410FP !== lastTop410FP);
+
+      // ====== HIERARCHIE DES SONS ======
+      // Priorité: Top1 > Top2 > Top3 > Mid
+      let playedTop = false;
+
+      if (changed.includes(1)) {
+        flashOnCard(1, 'NEW KING');
+        AudioMgr.playTop(1);
+        playedTop = true;
+      } else if (changed.includes(2)) {
+        flashOnCard(2, 'NEW CHAMPION');
+        AudioMgr.playTop(2);
+        playedTop = true;
+      } else if (changed.includes(3)) {
+        flashOnCard(3, 'NEW GUARDIAN');
+        AudioMgr.playTop(3);
+        playedTop = true;
+      }
+
+      if (playedTop) {
+        resetTimer('Top 1/2/3 changed');
+      } else if (midChanged) {
+        flashMid();
+        AudioMgr.playMid();
+        // Option: reset aussi si tu veux
+        // resetTimer('Top 4-10 changed');
+      } else {
+        elTStatus.textContent='stable…';
+      }
+
+      lastTop3FP = newTop3FP; lastTop410FP = newTop410FP;
+    }
+
+    // ===== Header / Fees =====
+    let _lastFeesSOL = null;
+    let _lastFeesAnimAt = 0;
+
+    const FEES_EPS_SOL = 0.0001;   // ignore < 0.0001 SOL
+    const FEES_DEBOUNCE_MS = 1000; // anti-double déclenchement (1s)
+
+    function applyHeader(p){
+      elMint.textContent='MINT: '+(p.mint||'—');
+      const solUsd=+p.sol_usd||0;
+      const nf = new Intl.NumberFormat(undefined, { minimumFractionDigits:2, maximumFractionDigits:2 });
+      elPrice.textContent='SOL: ' + (solUsd? '$'+nf.format(solUsd) : '—');
+
+      const fs = Number(p?.fees?.sol);
+      const fu = Number(p?.fees?.usd);
+      const safeSol = Number.isFinite(fs) ? fs : 0;
+      const safeUsd = Number.isFinite(fu) ? fu : 0;
+
+      elFees.innerHTML=`Round Rewards: <span class="sol">${nf6.format(safeSol)} SOL</span> / <span class="usd">${nff.format(safeUsd)}</span>`;
+    }
+
+    function handleFeesChange(p){
+      if (frozen) return;
+      const fs = Number(p?.fees?.sol);
+      if (!Number.isFinite(fs)) return;
+
+      const now = performance.now();
+      if (_lastFeesSOL !== null) {
+        const dSol = Math.abs(fs - _lastFeesSOL);
+        if (dSol < FEES_EPS_SOL) { _lastFeesSOL = fs; return; }
+        if (now - _lastFeesAnimAt < FEES_DEBOUNCE_MS) { _lastFeesSOL = fs; return; }
+      }
+
+      _lastFeesSOL = fs;
+      _lastFeesAnimAt = now;
+      AudioMgr.playFees();
+      animateTop3Rewards(p.rewards || {});
+    }
+
+    // ===== PAYOUT (front) =====
+    function renderPayoutCard(rank){
+      const card = document.querySelector(`.card.rank${rank}`);
+      if(!card) return {wallet:null, tokens:0, sol:0};
+
+      const wallet = (card.dataset.wallet || '').trim();
+      const tokensText = card.querySelector('.tokens')?.textContent || '0';
+      const tokens = parseInt(tokensText.replace(/[^\d]/g,'')) || 0;
+
+      const solFromDOM = parseFloat((card.querySelector('.rewardSol .sol')?.textContent || '0').replace(/[^\d.\-]/g,'')) || 0;
+      const solFromState = Number(rewardsFor(rank, currentRewards).sol) || 0;
+      const sol = solFromDOM || solFromState;
+
+      const left = card.querySelector('.left');
+      if (left){
+        left.innerHTML = `
+          <div class="bottom" style="margin-top:0">
+            <div class="addr" style="font-family:monospace;font-weight:900">${wallet}</div>
+            <div class="tokens" style="color:#ffe7c2; font-weight:800">${formatTokens(tokens)} tokens</div>
+            <div class="rewardRow" style="margin-top:8px">
+              <div class="chipSmall" style="font-weight:900">To pay:</div>
+              <div class="chipSmall"><span class="sol">${nf6.format(sol)} SOL</span></div>
+            </div>
+            <div class="chipSmall payoutStatus" style="margin-top:10px; background:linear-gradient(180deg,#2e241d,#1d1713); border:1px solid #4a3a2f; color:#f5d58f; font-weight:900">
+              Awaiting transfer…
+            </div>
+          </div>
+        `;
+      }
+
+      const crest = card.querySelector('.crest');
+      if (crest && rank<=3){
+        const kind = rank===1?'gold':rank===2?'silver':'bronze';
+        crest.innerHTML = crownSVG(kind);
+      }
+
+      return {wallet, tokens, sol};
+    }
+
+    function buildPayoutLines(){
+      const line1 = renderPayoutCard(1);
+      const line2 = renderPayoutCard(2);
+      const line3 = renderPayoutCard(3);
+      const fmt = ({wallet, sol}, n) => `${n}. ${wallet||'—'} - ${nf6.format(Number(sol)||0)} SOL`;
+      return [fmt(line1,1), fmt(line2,2), fmt(line3,3)];
+    }
+
+    function sendPayoutToBackend(lines){
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    console.warn('[PAYOUT] WS not open, cannot send');
+    return;
+  }
+  const msg = {
+    type: 'PAYOUT_WRITE',
+    round: ROUND_NO,                 // ← numéro du round
+    round_label: `Round ${ROUND_NO}`,// (optionnel, pratique côté back/logs)
+    lines,
+    ts: new Date().toISOString()
+  };
+  try { ws.send(JSON.stringify(msg)); } catch(e){ console.error('[PAYOUT] send error', e); }
+}
+
+
+    function triggerPayoutIfNeeded(){
+      if (payoutSent) return;
+      payoutSent = true;
+      const lines = buildPayoutLines();
+      sendPayoutToBackend(lines);
+    }
+
+    function markPayoutDone(rank, txUrl){
+      const card = document.querySelector(`.card.rank${rank}`);
+      if (!card) return;
+
+      const statusEl = card.querySelector('.payoutStatus');
+      if (statusEl){
+        statusEl.textContent = 'PAYMENT DONE';
+        statusEl.style.color = '#b4f5c1';
+        statusEl.style.borderColor = '#376143';
+        statusEl.style.background = 'linear-gradient(180deg,#203323,#16261a)';
+      }
+
+      const safeTx = (txUrl || '').toString().trim();
+      if (safeTx){
+        let banner = card.querySelector('.txBanner');
+        if (!banner){
+          banner = document.createElement('div');
+          banner.className = 'txBanner';
+          card.appendChild(banner);
+        }
+        banner.textContent = safeTx;
+      }
+
+      AudioMgr.playPayout();
+
+      payoutDone[rank] = true;
+      if (frozen && roundEnded && payoutDone[1] && payoutDone[2] && payoutDone[3]){
+        startNextRoundCountdown(NEXT_ROUND_COUNTDOWN_MS);
+      }
+    }
+
+    // ===== FROZEN control =====
+    function freezeUI(reason='frozen'){
+      if (frozen) return;
+      frozen = true;
+      roundEnded = true;
+      document.body.classList.add('frozen');
+      elTStatus.textContent = 'round frozen — ' + reason;
+      elTime.textContent = '00:00';
+      elFill.style.transform = 'scaleX(0)';
+
+      triggerPayoutIfNeeded();
+    }
+
+    function beginNextRound(){
+      frozen = false;
+      roundEnded = false;
+      payoutSent = false;
+      nextRoundCountdownRunning = false;
+      payoutDone[1] = payoutDone[2] = payoutDone[3] = false;
+      roundEndPlayed = false;
+      document.body.classList.remove('frozen');
+
+      if (elNextOverlay){
+        elNextOverlay.classList.remove('show');
+        elNextOverlay.setAttribute('aria-hidden','true');
+      }
+
+      elBanners.innerHTML = '';
+      elRows.innerHTML = '';
+      elementsByWallet.clear();
+      lastRankByWallet.clear();
+      mounted = false;
+
+      lastTop3FP = null;
+      lastTop410FP = null;
+
+      document.querySelectorAll('.txBanner').forEach(n=>n.remove());
+      document.querySelectorAll('.payoutStatus').forEach(st=>{
+        st.textContent = '';
+        st.style.removeProperty('color');
+        st.style.removeProperty('border-color');
+        st.style.removeProperty('background');
+      });
+
+      applyRoundLabel();
+
+      countdownStart = Date.now();
+      elTStatus.textContent = 'new round started';
+      elTime.textContent = '10:00';
+      elFill.style.transform = 'scaleX(1)';
+    }
+    window.__nextRound = beginNextRound;
+
+    // ===== Overlay de compte à rebours Next Round =====
+    function startNextRoundCountdown(msTotal){
+      if (nextRoundCountdownRunning) return;
+      nextRoundCountdownRunning = true;
+
+      const startTs = performance.now();
+      const endTs = startTs + Math.max(0, msTotal|0);
+
+      if (elNextOverlay){
+        elNextOverlay.classList.add('show');
+        elNextOverlay.setAttribute('aria-hidden','false');
+      }
+
+      function update(){
+        const now = performance.now();
+        const left = Math.max(0, Math.ceil((endTs - now)/1000));
+        if (elNextTimer) elNextTimer.textContent = `0${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`;
+
+        if (now >= endTs){
+          beginNextRound();
+        } else if (nextRoundCountdownRunning){
+          requestAnimationFrame(update);
+        }
+      }
+      update();
+    }
+
+    // ===== Timer =====
+    function resetTimer(reason){
+      if (frozen) return;
+      countdownStart=Date.now(); elTStatus.textContent='timer reset ('+reason+')';
+    }
+    function tick(){
+      if(!countdownStart){
+        elTime.textContent='10:00'; elFill.style.transform='scaleX(1)';
+      }else{
+        const left = ROUND_MS - (Date.now()-countdownStart);
+        const clamped = Math.max(0, left);
+        elTime.textContent = fmtTime(clamped);
+        elFill.style.transform = 'scaleX(' + (Math.max(0, clamped/ROUND_MS)).toFixed(4) + ')';
+
+        if (left <= 0){
+          if (!roundEndPlayed){
+            roundEndPlayed = true;
+            AudioMgr.playRoundEnd();
+          }
+          freezeUI('timer reached 00:00');
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+
+    // ===== WS =====
+    function connectWS(){
+      try{ ws=new WebSocket(WS_URL); }catch(e){ scheduleReconnect(); return; }
+      ws.onopen = ()=>{ elWS.textContent='WS: connected'; elWS.style.color='#9cffb0'; reconnectDelay=900; };
+      ws.onclose= ()=>{ elWS.textContent='WS: disconnected'; elWS.style.color='#ffb3b3'; scheduleReconnect(); };
+      ws.onerror= ()=>{ elWS.textContent='WS: error'; elWS.style.color='#ffb3b3'; try{ws.close();}catch{} };
+      ws.onmessage=(ev)=>{
+        try{
+          const msg=JSON.parse(ev.data);
+          const mtype=(msg.type||'').toUpperCase();
+
+          if (mtype==='SET_COUNTER' && Number(msg.value)===0){
+            countdownStart = Date.now() - ROUND_MS;
+            freezeUI('manual set to 0');
+            return;
+          }
+
+		  if (mtype === 'CURRENT_ROUND_ID') {
+  // Accept common payload shapes: {round}, {id}, or {value}
+  const n = Number(msg.round ?? msg.id ?? msg.value);
+  if (Number.isFinite(n) && n > 0) {
+    ROUND_NO = n;
+    applyRoundLabel(); // update the header + document title
+  }
+  return;
+}
+          if (mtype==='PAYOUT_1'){ markPayoutDone(1, msg.tx || msg.solscan || ''); return; }
+          if (mtype==='PAYOUT_2'){ markPayoutDone(2, msg.tx || msg.solscan || ''); return; }
+          if (mtype==='PAYOUT_3'){ markPayoutDone(3, msg.tx || msg.solscan || ''); return; }
+
+          if(mtype!=='TOP10_UPDATE') return;
+          const p = msg;
+          currentRewards = p.rewards || null;
+
+          applyHeader(p);
+
+          const ten = (p.holders||[]).slice(0,10).map(h=>({
+            rank: Number(h.rank)||0,
+            wallet: (h.wallet||'').trim(),
+            total_tokens: Number(h.total_tokens)||0,
+            kol: (h.kol||'').trim()
+          })).filter(h=>h.rank>0).sort((a,b)=>a.rank-b.rank);
+
+          if(!mounted){
+            mountInitial(ten, p.rewards);
+            mounted=true;
+            lastTop3FP = fpTop3(ten);
+            lastTop410FP = fpTop410(ten);
+            resetTimer('first data');
+          } else {
+            updateRanks(ten, p.rewards);
+          }
+
+          handleFeesChange(p);
+        }catch(e){}
+      };
+    }
+    function scheduleReconnect(){ setTimeout(connectWS, reconnectDelay); reconnectDelay=Math.min(10000, Math.floor(reconnectDelay*1.7)); }
+
+    connectWS();
+    requestAnimationFrame(tick);
+  </script>
+</body>
+
+
+
+</html>
