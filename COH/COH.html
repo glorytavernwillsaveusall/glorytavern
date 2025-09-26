@@ -434,7 +434,7 @@
       </div>
 
       <div class="timer">
-        <div class="timeBig" id="timeBig">10:00</div>
+        <div class="timeBig" id="timeBig">5:00</div>
         <div class="bar"><i id="barFill" style="transform:scaleX(1)"></i></div>
         <div class="tstatus" id="tStatus">waiting for first update…</div>
       </div>
@@ -483,7 +483,7 @@
   <script>
     const urlParams = new URLSearchParams(location.search);
     const WS_URL = urlParams.get('ws') || 'ws://localhost:8787';
-    const ROUND_MS = 10 * 60 * 1000;
+    const ROUND_MS = 5 * 60 * 1000;
 
     // ===== ROUND (config & affichage) =====
     // Backend is the source of truth for the round number (via CURRENT_ROUND_ID).
@@ -1219,7 +1219,7 @@
 
       countdownStart = Date.now();
       elTStatus.textContent = 'new round started';
-      elTime.textContent = '10:00';
+      elTime.textContent = '5:00';
       elFill.style.transform = 'scaleX(1)';
     }
     window.__nextRound = beginNextRound;
@@ -1258,7 +1258,7 @@
     }
     function tick(){
       if(!countdownStart){
-        elTime.textContent='10:00'; elFill.style.transform='scaleX(1)';
+        elTime.textContent='5:00'; elFill.style.transform='scaleX(1)';
       }else{
         const left = ROUND_MS - (Date.now()-countdownStart);
         const clamped = Math.max(0, left);
