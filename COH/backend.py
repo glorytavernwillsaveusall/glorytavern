@@ -21,7 +21,7 @@
 #       ENTER -> Broadcast PAYOUT_1 { tx, solscan, ts } using first non-empty line of payouts/ROUND_X/payout1_sig.txt
 #                 ALSO writes payouts/ROUND_X/post_1.txt
 #       ENTER -> PAYOUT_2 (+ post_2.txt)
-#       ENTER -> PAYOUT_3 (+ post_3.txt)  -> then backend increments round.txt and UNFREEZE
+#       ENTER -> PAYOUT_3 (+ post_3.txt)  -> then backend writes website.txt, increments round.txt and UNFREEZE
 # 3) '0' + ENTER -> sends SET_COUNTER=0 (freeze UI counter). Backend keeps running.
 
 # pip install aiohttp python-dotenv websockets
@@ -225,6 +225,10 @@ def path_sig(round_id: str, step: int) -> str:
 def path_post(round_id: str, step: int) -> str:
     return os.path.join(round_dir(round_id), POST_BASENAMES[step])
 
+# >>> NEW: website.txt path helper <<<
+def path_website(round_id: str) -> str:
+    return os.path.join(round_dir(round_id), "website.txt")
+
 async def send_round_update():
     """Emit CURRENT_ROUND_ID (backend-controlled) before any TOP10_UPDATE."""
     current_round = read_round_file()
@@ -422,6 +426,37 @@ def build_post_text(round_id: str, rank: int, wallet: str, tx: str, sol_amount: 
     body.append(f"Tx: {tx or 'TBD'}")
     return "\n".join(body)
 
+# >>> NEW: website.txt HTML builder helpers <<<
+def format_sol(x: Optional[float]) -> str:
+    if x is None:
+        return "0"
+    s = f"{float(x):.6f}".rstrip("0").rstrip(".")
+    return s if s else "0"
+
+def build_website_card_html(round_id: str,
+                            winners: Dict[int, Tuple[str, Optional[float]]],
+                            sigs: Dict[int, str]) -> str:
+    medals = {1: "🥇", 2: "🥈", 3: "🥉"}
+    lines = []
+    lines.append('<div class="card">')
+    lines.append(f'  <div class="badge">Round {round_id}</div>')
+    for rank in (1, 2, 3):
+        title = TITLES.get(rank, f"Top {rank}")
+        wallet, sol_amt = winners.get(rank, ("", None))
+        sig = (sigs.get(rank) or "").strip()
+        sol_txt = format_sol(sol_amt)
+        href = sig if sig else '#'
+        lines.append('  <div class="rank">')
+        lines.append(f'    <b>{medals.get(rank, "")}</b>')
+        lines.append('    <div>')
+        lines.append(f'      <div style="font-weight:700">{title}</div>')
+        lines.append(f'      <div class="mono">{wallet}</div>')
+        lines.append(f'      <div>{sol_txt} SOL · <a href="{href}" target="_blank">tx</a></div>')
+        lines.append('    </div>')
+        lines.append('  </div>')
+    lines.append('</div>')
+    return "\n".join(lines)
+
 # ===== Winners parsing =====
 WIN_LINE_RE = re.compile(
     r"^\s*(?P<rank>[123])[\s\.\):-]*\s*(?P<wallet>[A-Za-z0-9]{20,})\s*[-–—:]\s*(?P<sol>[0-9]+(?:\.[0-9]+)?)\s*SOL\b",
@@ -608,7 +643,7 @@ async def stdin_command_task(stop_event: asyncio.Event):
     """
     loop = asyncio.get_running_loop()
     print("[CTL] Press ENTER to send next PAYOUT (1→2→3). Type 0 + ENTER to SET_COUNTER=0.", flush=True)
-    global _payout_next_idx, _winners_lines
+    global _payout_next_idx, _winners_lines, _parsed_winners
 
     while not stop_event.is_set():
         line = await loop.run_in_executor(None, sys.stdin.readline)
@@ -654,13 +689,33 @@ async def stdin_command_task(stop_event: asyncio.Event):
             post_text = build_post_text(current_round, step, wallet or "TBD", sig or "TBD", sol_amt)
             write_text_file(path_post(current_round, step), post_text)
 
+            # >>> NEW: After PAYOUT_3, also write website.txt then increment round <<<
             if _payout_next_idx >= 3:
-                # Auto-increment backend round and unfreeze
                 try:
-                    curr = int(read_round_file())
+                    finished_round = read_round_file()
+                    sigs = {
+                        1: read_first_non_empty_line(path_sig(finished_round, 1)) or "",
+                        2: read_first_non_empty_line(path_sig(finished_round, 2)) or "",
+                        3: read_first_non_empty_line(path_sig(finished_round, 3)) or "",
+                    }
+                    winners = {
+                        1: (_parsed_winners.get(1, ("", None))[0],
+                            _parsed_winners.get(1, ("", None))[1] if _parsed_winners.get(1) else None),
+                        2: (_parsed_winners.get(2, ("", None))[0],
+                            _parsed_winners.get(2, ("", None))[1] if _parsed_winners.get(2) else None),
+                        3: (_parsed_winners.get(3, ("", None))[0],
+                            _parsed_winners.get(3, ("", None))[1] if _parsed_winners.get(3) else None),
+                    }
+                    website_html = build_website_card_html(finished_round, winners, sigs)
+                    write_text_file(path_website(finished_round), website_html)
+                    print(f"[WEBSITE] website.txt generated for ROUND {finished_round}", flush=True)
+
+                    # Now increment round
+                    curr = int(finished_round)
                     write_round_file(curr + 1)
                 except Exception as e:
-                    print(f"[ROUND] Failed to increment round after PAYOUT_3: {e}", flush=True)
+                    print(f"[ROUND] Failed to finalize website/increment after PAYOUT_3: {e}", flush=True)
+
                 _winners_lines = []
                 print("[PAUSE] Payout sequence complete → unfreezing TOP10 generation.", flush=True)
                 print("[PAYOUT] Sequence PAYOUT_1/2/3 complete. Waiting for new winners…", flush=True)
@@ -696,7 +751,7 @@ async def main_async(mint: str):
 
                     if payout_in_progress():
                         # Do not advance price/top10 or broadcast while payouts pending
-                        print("[PAUSE] Payout in progress (waiting for PAYOUT_3). Skipping TOP10 fetch & broadcasts.", flush=True)
+                        # print("[PAUSE] Payout in progress (waiting for PAYOUT_3). Skipping TOP10 fetch & broadcasts.", flush=True)
                     else:
                         sol_usd = await price_cache.get(session) or 0.0
                         topN = await fetch_topN_aggregated_by_wallet(session, mint, top_n=10)
