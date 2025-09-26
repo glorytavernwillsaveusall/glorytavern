@@ -414,9 +414,6 @@
 </head>
 
 
-
-
-
 <body>
   <div class="app">
     <header class="hdr">
@@ -489,15 +486,15 @@
     const ROUND_MS = 10 * 60 * 1000;
 
     // ===== ROUND (config & affichage) =====
-// Backend is the source of truth for the round number (via CURRENT_ROUND_ID).
-let ROUND_NO = 1; // default until the server sends CURRENT_ROUND_ID
+    // Backend is the source of truth for the round number (via CURRENT_ROUND_ID).
+    let ROUND_NO = 1; // default until the server sends CURRENT_ROUND_ID
 
-function applyRoundLabel(){
-  const roundEl = document.getElementById('roundTag');
-  if (roundEl) roundEl.textContent = `Round ${ROUND_NO}`;
-  document.title = `Clash Of Hodlers — Round ${ROUND_NO} — Arena (TOP10_UPDATE + KOL Top3)`;
-}
-applyRoundLabel();
+    function applyRoundLabel(){
+      const roundEl = document.getElementById('roundTag');
+      if (roundEl) roundEl.textContent = `Round ${ROUND_NO}`;
+      document.title = `Clash Of Hodlers — Round ${ROUND_NO} — Arena (TOP10_UPDATE + KOL Top3)`;
+    }
+    applyRoundLabel();
 
     // ===== STATE =====
     let ws, reconnectDelay = 900;
@@ -514,6 +511,8 @@ applyRoundLabel();
     const payoutDone = {1:false, 2:false, 3:false};
     const NEXT_ROUND_COUNTDOWN_MS = 60 * 1000;
     let roundEndPlayed = false;
+    // NEW: liste des rangs réellement à payer pour ce round (gère 1, 2 ou 3 gagnants)
+    let requiredPayoutRanks = [1,2,3];
 
     let currentRewards = null;
 
@@ -1113,12 +1112,22 @@ applyRoundLabel();
   try { ws.send(JSON.stringify(msg)); } catch(e){ console.error('[PAYOUT] send error', e); }
 }
 
-
     function triggerPayoutIfNeeded(){
       if (payoutSent) return;
       payoutSent = true;
       const lines = buildPayoutLines();
       sendPayoutToBackend(lines);
+    }
+
+    // NEW: calcule les rangs réellement à payer (wallet présent)
+    function computeRequiredPayoutRanks(){
+      const ranks = [];
+      for (let r = 1; r <= 3; r++){
+        const card = document.querySelector(`.card.rank${r}`);
+        const w = card?.dataset?.wallet?.trim();
+        if (w) ranks.push(r);
+      }
+      return ranks;
     }
 
     function markPayoutDone(rank, txUrl){
@@ -1147,7 +1156,9 @@ applyRoundLabel();
       AudioMgr.playPayout();
 
       payoutDone[rank] = true;
-      if (frozen && roundEnded && payoutDone[1] && payoutDone[2] && payoutDone[3]){
+      // NEW: ne démarre le prochain round que quand tous les rangs requis sont payés
+      const allRequiredPaid = requiredPayoutRanks.every(r => payoutDone[r]);
+      if (frozen && roundEnded && allRequiredPaid){
         startNextRoundCountdown(NEXT_ROUND_COUNTDOWN_MS);
       }
     }
@@ -1161,6 +1172,14 @@ applyRoundLabel();
       elTStatus.textContent = 'round frozen — ' + reason;
       elTime.textContent = '00:00';
       elFill.style.transform = 'scaleX(0)';
+
+      // NEW: détecte combien de gagnants réels (#1..#3) pour ce round
+      requiredPayoutRanks = computeRequiredPayoutRanks();
+      // Si aucun gagnant (cas extrême), on enchaîne immédiatement
+      if (requiredPayoutRanks.length === 0){
+        startNextRoundCountdown(NEXT_ROUND_COUNTDOWN_MS);
+        return;
+      }
 
       triggerPayoutIfNeeded();
     }
@@ -1274,7 +1293,7 @@ applyRoundLabel();
             return;
           }
 
-		  if (mtype === 'CURRENT_ROUND_ID') {
+      if (mtype === 'CURRENT_ROUND_ID') {
   // Accept common payload shapes: {round}, {id}, or {value}
   const n = Number(msg.round ?? msg.id ?? msg.value);
   if (Number.isFinite(n) && n > 0) {

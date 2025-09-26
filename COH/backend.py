@@ -43,7 +43,7 @@ HELIUS_RPC = (f"https://mainnet.helius-rpc.com/?api-key={HELIUS_API_KEY}"
               if HELIUS_API_KEY else "https://api.mainnet-beta.solana.com")
 
 # Refresh / timeouts
-POLL_INTERVAL_SEC = int(os.getenv("POLL_INTERVAL_SEC") or "10")
+POLL_INTERVAL_SEC = int(os.getenv("POLL_INTERVAL_SEC") or "5")
 SOL_PRICE_TTL_SEC = int(os.getenv("SOL_PRICE_TTL_SEC") or "60")
 RPC_TIMEOUT_SEC   = int(os.getenv("RPC_TIMEOUT_SEC") or "45")
 RPC_RETRIES       = int(os.getenv("RPC_RETRIES") or "4")
