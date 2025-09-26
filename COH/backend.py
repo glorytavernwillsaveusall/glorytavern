@@ -605,11 +605,10 @@ def print_top_block(*, mint: str, rpc: str, topN: List[Tuple[str, float]],
 
 def make_payload(*, mint: str, topN: List[Tuple[str, float]], fees_sol: float,
                  sol_usd: float, kol_get=lambda w: "") -> dict:
-    """Stable schema for frontend, extended to top-10 with 'kol' per holder.
-       Rewards are computed on 60% of fees, split 50/30/20."""
     to_usd = lambda x: x * sol_usd
-    reward_pool_sol = fees_sol * REWARD_POOL_RATE
+    reward_pool_sol = fees_sol * REWARD_POOL_RATE          # ← 60% du fichier
     rewards_sol = [reward_pool_sol * p for p in REWARD_PCT]
+
     holders = []
     for i, (w, amt) in enumerate(topN[:10]):
         holders.append({
@@ -618,16 +617,18 @@ def make_payload(*, mint: str, topN: List[Tuple[str, float]], fees_sol: float,
             "total_tokens": float(f"{amt:.8f}"),
             "kol": kol_get(w) or ""
         })
+
     return {
         "type": "TOP10_UPDATE",
         "ts": now_iso(),
         "mint": mint,
         "sol_usd": float(f"{sol_usd:.8f}"),
-        "fees": {  # raw fees as read from file
-            "sol": float(f"{fees_sol:.8f}"),
-            "usd": float(f"{to_usd(fees_sol):.8f}")
+        # CHANGEMENT: on envoie le pool (60%) au front
+        "fees": {
+            "sol": float(f"{reward_pool_sol:.8f}"),
+            "usd": float(f"{to_usd(reward_pool_sol):.8f}")
         },
-        "rewards": {  # rewards reflect 60% pool split 50/30/20
+        "rewards": {  # déjà cohérents avec le pool à 60%
             "top1": {"sol": float(f"{rewards_sol[0]:.8f}"), "usd": float(f"{to_usd(rewards_sol[0]):.8f}")},
             "top2": {"sol": float(f"{rewards_sol[1]:.8f}"), "usd": float(f"{to_usd(rewards_sol[1]):.8f}")},
             "top3": {"sol": float(f"{rewards_sol[2]:.8f}"), "usd": float(f"{to_usd(rewards_sol[2]):.8f}")},

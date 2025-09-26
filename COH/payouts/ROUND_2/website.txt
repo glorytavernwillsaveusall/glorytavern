@@ -1,0 +1,27 @@
+<div class="card">
+  <div class="badge">Round 2</div>
+  <div class="rank">
+    <b>🥇</b>
+    <div>
+      <div style="font-weight:700">King of the Hodlers</div>
+      <div class="mono">BuzzX9WZx3Dr14ptejZiu5BrDHooioxQYmPsttuMucuA</div>
+      <div>0.0045 SOL · <a href="https://solscan.io/tx/2USAEwDn27rPsaLt3THGiJiytxLvHQiZyWyjxLLC8oCkppQh15sN64ssS8vAjHzEpt9AEGQXRqL88nV2oE6kBq8K" target="_blank">tx</a></div>
+    </div>
+  </div>
+  <div class="rank">
+    <b>🥈</b>
+    <div>
+      <div style="font-weight:700">Champion of the Chain</div>
+      <div class="mono">2wCxAv21y2Cdhw7KJjVfSFkUk9wUH4YxTJWTz9gfDqWS</div>
+      <div>0.0027 SOL · <a href="https://solscan.io/tx/49yMNpLDpmYdD62VAqgSN8WWB9uyq7GJeQ5RC371D4DVrdQUvbyuEERz6iEMDZuozy8XAi7Fep5tbJMJBev5hh7h" target="_blank">tx</a></div>
+    </div>
+  </div>
+  <div class="rank">
+    <b>🥉</b>
+    <div>
+      <div style="font-weight:700">Guardian of the Treasury</div>
+      <div class="mono">FCcR39UR4XN2Mb3nhFQmgqazwL9X4syX3ZxRVm49G2K7</div>
+      <div>0.0018 SOL · <a href="https://solscan.io/tx/2LX1EbXsk8e8rGziM73cg5wxT5povFMnvXi2QbF5Xe4G1VvaCfEgQVfGdJf5R3a7SbCiA1RezQpiFz7y8ngs3VeX" target="_blank">tx</a></div>
+    </div>
+  </div>
+</div>
