@@ -970,13 +970,13 @@ applyRoundLabel();
         return;
       }
 
-      const prevParts=(lastTop3FP||'').split('|');
-      const currTop3=sortedTen.slice(0,3).map(x=>x.wallet||'NONE');
+      const prevParts = (lastTop3FP || 'NONE|NONE|NONE').split('|');
+      const currParts = (newTop3FP || 'NONE|NONE|NONE').split('|');
 
       const changed = [];
-      if (currTop3[0] !== prevParts[0]) changed.push(1);
-      if (currTop3[1] !== prevParts[1]) changed.push(2);
-      if (currTop3[2] !== prevParts[2]) changed.push(3);
+      if (currParts[0] !== prevParts[0] && currParts[0] !== 'NONE') changed.push(1);
+      if (currParts[1] !== prevParts[1] && currParts[1] !== 'NONE') changed.push(2);
+      if (currParts[2] !== prevParts[2] && currParts[2] !== 'NONE') changed.push(3);
 
       const midChanged = (newTop410FP !== lastTop410FP);
 

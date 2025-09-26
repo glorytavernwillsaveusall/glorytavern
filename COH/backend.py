@@ -751,7 +751,7 @@ async def main_async(mint: str):
 
                     if payout_in_progress():
                         # Do not advance price/top10 or broadcast while payouts pending
-                        # print("[PAUSE] Payout in progress (waiting for PAYOUT_3). Skipping TOP10 fetch & broadcasts.", flush=True)
+                        print("[PAUSE] Payout in progress (waiting for PAYOUT_3). Skipping TOP10 fetch & broadcasts.", flush=True)
                     else:
                         sol_usd = await price_cache.get(session) or 0.0
                         topN = await fetch_topN_aggregated_by_wallet(session, mint, top_n=10)
